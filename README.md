@@ -138,13 +138,17 @@ const rootReducer = combineReducers({
     cake: cakeReducer,
     iceCream: iceCreamReducer
 }); // { cake: { noOfCakes: 10 }, iceCream: { noOfIceCreams: 20 } }
+
 const store = createStore(rootReducer);
 console.log("Initial state", store.getState());
 const unsubscribe = store.subscribe(() => console.log("Updated state", store.getState()));
+
 store.dispatch(buyCake()); // { cake: { noOfCakes: 9 }, iceCream: { noOfIceCreams: 20 } }
 store.dispatch(buyCake()); // { cake: { noOfCakes: 8 }, iceCream: { noOfIceCreams: 20 } }
 store.dispatch(buyCake()); // { cake: { noOfCakes: 7 }, iceCream: { noOfIceCreams: 20 } }
+
 store.dispatch(buyIceCream()); // { cake: { noOfCakes: 7 }, iceCream: { noOfIceCreams: 19 } }
 store.dispatch(buyIceCream()); // { cake: { noOfCakes: 7 }, iceCream: { noOfIceCreams: 18 } }
+
 unsubscribe();
 ```
