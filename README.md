@@ -62,7 +62,9 @@ const reducer = (state = initalState, action) => {
   // store
   const store = createStore(reducer);
   console.log("Initial state", store.getState());
-  const unsubscribe = store.subscribe(() => console.log("Updated state", store.getState()));
+  const unsubscribe = store.subscribe(() =>
+    console.log("Updated state", store.getState())
+  );
 
   store.dispatch(buyCake()); // { noOfCakes: 0 }
   store.dispatch(buyCake()); // { noOfCakes: -1 }
@@ -106,7 +108,6 @@ const initialIceCreamState = {
   noOfIceCreams: 20,
 };
 
-
 // multiple reducers
 const cakeReducer = (state = initialCakeState, action) => {
   switch (action.type) {
@@ -135,13 +136,15 @@ const iceCreamReducer = (state = initialIceCreamState, action) => {
 };
 
 const rootReducer = combineReducers({
-    cake: cakeReducer,
-    iceCream: iceCreamReducer
+  cake: cakeReducer,
+  iceCream: iceCreamReducer,
 }); // { cake: { noOfCakes: 10 }, iceCream: { noOfIceCreams: 20 } }
 
 const store = createStore(rootReducer);
 console.log("Initial state", store.getState());
-const unsubscribe = store.subscribe(() => console.log("Updated state", store.getState()));
+const unsubscribe = store.subscribe(() =>
+  console.log("Updated state", store.getState())
+);
 
 store.dispatch(buyCake()); // { cake: { noOfCakes: 9 }, iceCream: { noOfIceCreams: 20 } }
 store.dispatch(buyCake()); // { cake: { noOfCakes: 8 }, iceCream: { noOfIceCreams: 20 } }
@@ -151,4 +154,107 @@ store.dispatch(buyIceCream()); // { cake: { noOfCakes: 7 }, iceCream: { noOfIceC
 store.dispatch(buyIceCream()); // { cake: { noOfCakes: 7 }, iceCream: { noOfIceCreams: 18 } }
 
 unsubscribe();
+```
+
+### Async Actions:
+
+- A function that returns a promise.
+- It is used to perform asynchronous actions.
+- e.g. function buyCake() { return fetch("https://example.com/api/cake") }
+
+We will use the axios and redux-thunk package.
+
+```js
+const redux = require("redux");
+const thunkMiddleware = require("redux-thunk").default;
+const axios = require("axios");
+
+const createStore = redux.createStore;
+const applyMiddleware = redux.applyMiddleware;
+
+// initial state
+const initialState = {
+  loading: false,
+  users: [],
+  error: "",
+};
+
+// actions
+const FETCH_USERS_REQUEST = "FETCH_USERS_REQUEST";
+const FETCH_USERS_SUCCESS = "FETCH_USERS_SUCCESS";
+const FETCH_USERS_FAILURE = "FETCH_USERS_FAILURE";
+
+const fetchUsersRequest = () => {
+  return {
+    type: FETCH_USERS_REQUEST,
+  };
+};
+
+const fetchUsersSuccess = (users) => {
+  return {
+    type: FETCH_USERS_SUCCESS,
+    payload: users,
+  };
+};
+
+const fetchUsersFailure = (error) => {
+  return {
+    type: FETCH_USERS_FAILURE,
+    payload: error,
+  };
+};
+
+const reducer = (state = initialState, action) => {
+  switch (action.type) {
+    case FETCH_USERS_REQUEST:
+      return {
+        ...state,
+        loading: true,
+      };
+
+    case FETCH_USERS_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        users: action.payload,
+        error: "",
+      };
+
+    case FETCH_USERS_FAILURE:
+      return {
+        ...state,
+        loading: false,
+        users: [],
+        error: action.payload,
+      };
+
+    default:
+      return state;
+  }
+};
+
+const fetchUsers = () => {
+  return function (dispatch) {
+    dispatch(fetchUsersRequest());
+    axios
+      .get("https://jsonplaceholder.typicode.com/users")
+      .then((response) => {
+        // response.data is the array of users
+        const users = response.data.map((user) => user.id);
+        dispatch(fetchUsersSuccess(users));
+      })
+      .catch((error) => {
+        // error.message is the error description
+        dispatch(fetchUsersFailure(error.message));
+      });
+  };
+};
+
+// store
+const store = createStore(reducer, applyMiddleware(thunkMiddleware));
+store.subscribe(() => {
+  console.log(store.getState());
+});
+
+store.dispatch(fetchUsers());
 ```
